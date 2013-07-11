@@ -50,6 +50,14 @@ c = [0,3,2,1,4,9,6,7,8,5] #10 inversions: 9 and 6, 9 and 7, 9 and 8, 9 and 5; 6 
 d = [1,3,5,2,4,6] #3 inversions: 3 and 2, 5 and 2, 5 and 4
 e = [9,8,7,6,5,4,3,2,1,0] #45 inversions
 
-result = merge_sort_and_count_inversions(e)
+
+array = Array.new(100000)
+i = 0
+File.open("IntegerArray.txt", 'r').each_line do |number|
+  array[i] = number.to_i
+  i+=1
+end
+
+result = merge_sort_and_count_inversions(array)
 print result[:inversions]
 print "\n"

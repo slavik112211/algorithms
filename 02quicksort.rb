@@ -17,8 +17,9 @@ def quick_sort(array, min_index, max_index)
 end
 
 def quick_sort_partition(array, min_index, max_index)
-    pivot_position = pivot_first_element(min_index, max_index)
+    swap(array, min_index, max_index) #putting the pivot from last element to first element
     number_of_comparisons = max_index - min_index
+    pivot_position = min_index
 
     j = min_index+1; #denotes the split position in array - that is where the next [element<pivot] should be put in swap. 
 
@@ -40,10 +41,6 @@ def swap(array, i, j)
   array[i] = swap
 end
 
-def pivot_first_element(min_index, max_index)
-  return min_index
-end
-
 a = [3,2,7,4,6,1,5,9,0,8]
 
 
@@ -55,6 +52,7 @@ File.open("QuickSort.txt", 'r').each_line do |number|
 end
 
 #first_element_pivot = 162085 comparisons
+#last_element_pivot  = 164123 comparisons
 
 result = quick_sort(array, 0, array.length-1)
 print result[:number_of_comparisons].to_s + "\n"

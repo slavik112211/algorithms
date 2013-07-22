@@ -1,7 +1,7 @@
 require 'debugger'
 
 def quick_sort(array, min_index, max_index)
-  if (max_index - min_index < 1)
+  if (max_index - min_index < 1) #at least 2 elements to sort
     return {:number_of_comparisons => 0}
   end
 
@@ -17,7 +17,8 @@ def quick_sort(array, min_index, max_index)
 end
 
 def quick_sort_partition(array, min_index, max_index)
-    swap(array, min_index, max_index) #putting the pivot from last element to first element
+    pivot_position = find_median(array, min_index, max_index)
+    swap(array, min_index, pivot_position) #putting the pivot from median element to first element
     number_of_comparisons = max_index - min_index
     pivot_position = min_index
 
@@ -33,6 +34,32 @@ def quick_sort_partition(array, min_index, max_index)
 
     return {:pivot_position        => j-1,
             :number_of_comparisons => number_of_comparisons}
+end
+
+=begin
+If the array has odd length it should be clear what the "middle" element is; 
+for an array with even length 2k, use the kth element as the "middle" element. 
+So for the array 4 5 6 7, the "middle" element is the second one ---- 5 and not 6!
+
+Identify which of these three elements is the median (i.e., the one whose value 
+is in between the other two), and use this as your pivot.
+=end
+def find_median(array, min_index, max_index)
+  #Note that the division expression 5/2 does not return 2.5. 
+  #Because you are only working with integers (i.e. Fixnums), 
+  #Ruby will return an integer with the decimal part cut off.
+  middle_index = min_index + (max_index - min_index)/2
+  
+  if((array[middle_index] < array[min_index]    and array[min_index]    < array[max_index]) or
+        (array[max_index]    < array[min_index]    and array[min_index]    < array[middle_index]))
+    return min_index
+  elsif((array[min_index]    < array[middle_index] and array[middle_index] < array[max_index]) or
+        (array[max_index]    < array[middle_index] and array[middle_index] < array[min_index])) then 
+    return middle_index
+  elsif((array[min_index]    < array[max_index]    and array[max_index]    < array[middle_index]) or
+        (array[middle_index] < array[max_index]    and array[max_index]    < array[min_index])) then 
+    return max_index
+  end
 end
 
 def swap(array, i, j)
@@ -53,7 +80,10 @@ end
 
 #first_element_pivot = 162085 comparisons
 #last_element_pivot  = 164123 comparisons
+#median_element_pivot= 
 
-result = quick_sort(array, 0, array.length-1)
+debugger
+result = quick_sort(a, 0, a.length-1)
 print result[:number_of_comparisons].to_s + "\n"
+print a
 print "\n"

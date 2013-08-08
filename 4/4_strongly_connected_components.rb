@@ -69,6 +69,8 @@ class Graph
     dfs_vertices_stack.push(vertex)
 
     while vertex = dfs_vertices_stack.last
+      puts "last stack vertex: " + vertex.id.to_s
+      puts "was it explored before: " + (@explored_vertices[vertex.id.to_i-1] == true).to_s
       if @explored_vertices[vertex.id.to_i-1] == true
         finish_vertex = dfs_vertices_stack.pop
         if(@pass == 1)
@@ -92,7 +94,12 @@ class Graph
     @pass = 1
 
     (@vertices.length-1).downto(0) { |i|
-      depth_first_search_iterative(@vertices[i].id) if !@explored_vertices[i]
+      if !@explored_vertices[i]
+          puts "starting node: " + i.to_s
+          puts @finishing_times.inspect
+          puts @explored_vertices.inspect
+        depth_first_search_iterative(@vertices[i].id)
+      end
     }
   end
 
@@ -103,9 +110,9 @@ class Graph
     @pass = 2
 
     (@vertices.length).downto(1) { |i|
-      puts @finishing_times.join(", ")
-      puts i
-      puts @finishing_times.index(i)
+      #puts @finishing_times.join(", ")
+      #puts i
+      #puts @finishing_times.index(i)
       vertex_id = @finishing_times.index(i) + 1
       @scc_leader_id = vertex_id
       depth_first_search_iterative(vertex_id) if !@explored_vertices[vertex_id-1]

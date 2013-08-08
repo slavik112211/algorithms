@@ -46,9 +46,11 @@ class Graph
     @vertices.map{|vertex| vertex.to_s }.join("; ")
   end
 
-  def depth_first_search(starting_vertex_id)
+
+  # As this is a recursive method, the depth of the search is limited by function call stack settings.
+  def depth_first_search_recursive(starting_vertex_id)
     @explored_vertices[starting_vertex_id.to_i-1] = true
-    @scc_leaders[starting_vertex_id.to_i-1] = @scc_leader_id
+    @scc_leaders[starting_vertex_id.to_i-1] = @scc_leader_id if @pass == 2
     tail_vertex = find_vertex starting_vertex_id
     tail_vertex.head_vertices.each{|head_vertex|
       depth_first_search(head_vertex.id) if !@explored_vertices[head_vertex.id.to_i-1]
@@ -59,6 +61,30 @@ class Graph
     end
   end
 
+  def depth_first_search_iterative(starting_vertex_id)
+    dfs_vertices_stack = Array.new
+
+    current_vertex_id = starting_vertex_id
+    vertex = find_vertex current_vertex_id
+    dfs_vertices_stack.push(vertex)
+
+    while vertex = dfs_vertices_stack.last
+      if @explored_vertices[vertex.id.to_i-1] == true
+        finish_vertex = dfs_vertices_stack.pop
+        if(@pass == 1)
+          @finishing_time+=1
+          @finishing_times[finish_vertex.id.to_i-1] = @finishing_time
+        end
+        next
+      end
+      @explored_vertices[vertex.id.to_i-1] = true
+      @scc_leaders[vertex.id.to_i-1] = @scc_leader_id if @pass == 2
+      vertex.head_vertices.each{|head_vertex|
+        dfs_vertices_stack.push(head_vertex) if @explored_vertices[head_vertex.id.to_i-1] != true
+      }
+    end
+  end
+
   def find_finishing_times
     @explored_vertices.map!{|i| nil}
     @finishing_times.map!{|i| nil}
@@ -66,7 +92,7 @@ class Graph
     @pass = 1
 
     (@vertices.length-1).downto(0) { |i|
-      depth_first_search(@vertices[i].id) if !@explored_vertices[i]
+      depth_first_search_iterative(@vertices[i].id) if !@explored_vertices[i]
     }
   end
 
@@ -77,9 +103,12 @@ class Graph
     @pass = 2
 
     (@vertices.length).downto(1) { |i|
+      puts @finishing_times.join(", ")
+      puts i
+      puts @finishing_times.index(i)
       vertex_id = @finishing_times.index(i) + 1
       @scc_leader_id = vertex_id
-      depth_first_search(vertex_id) if !@explored_vertices[vertex_id-1]
+      depth_first_search_iterative(vertex_id) if !@explored_vertices[vertex_id-1]
     }
   end
 
@@ -139,13 +168,13 @@ def create_graphs(filename, number_of_vertices)
 end
 
 def kosaraju_strongly_connected_components
-  graphs = create_graphs("SCC.txt", 875714)
-  #graphs = create_graphs("SCC.txt", 9)
+  #graphs = create_graphs("SCC.txt", 875714)
+  graphs = create_graphs("scc4.txt", 12)
   graphs[1].find_finishing_times
   graphs[0].finishing_times = graphs[1].finishing_times
   graphs[0].find_strongly_connected_components
-  #puts "Finishing times: " + graphs[1].finishing_times.join("; ")
-  #puts "SCCs: " + graphs[0].scc_leaders.join("; ")
+  puts "Finishing times: " + graphs[1].finishing_times.join("; ")
+  puts "SCCs: " + graphs[0].scc_leaders.join("; ")
   puts graphs[0].get_scc_vertex_count
 end
 

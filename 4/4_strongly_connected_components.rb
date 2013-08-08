@@ -53,7 +53,7 @@ class Graph
     @scc_leaders[starting_vertex_id.to_i-1] = @scc_leader_id if @pass == 2
     tail_vertex = find_vertex starting_vertex_id
     tail_vertex.head_vertices.each{|head_vertex|
-      depth_first_search(head_vertex.id) if !@explored_vertices[head_vertex.id.to_i-1]
+      depth_first_search_recursive(head_vertex.id) if !@explored_vertices[head_vertex.id.to_i-1]
     }
     if(@pass == 1)
       @finishing_time+=1

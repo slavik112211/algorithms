@@ -74,7 +74,6 @@ class Graph
 
       @explored_vertices[vertex.id.to_i-1] = true
       if @pass == 2
-        #puts @scc_leader_id.to_s + " leader is assigned to " + vertex.id.to_s
         @scc_leaders[vertex.id.to_i-1] = @scc_leader_id
       end
 
@@ -107,31 +106,41 @@ class Graph
 
     (@vertices.length-1).downto(0) { |i|
       if !@explored_vertices[i]
-        puts "find_finishing_times, i=" + i.to_s
         depth_first_search_iterative(@vertices[i].id)
       end
     }
   end
 
   def find_strongly_connected_components
+    puts "find_strongly_connected_components"
     @explored_vertices.map!{|i| nil}
     @scc_leaders.map!{|i| nil}
     @scc_leader_id = nil
     @pass = 2
+    sort_vertices_according_to_finishing_times
 
-    (@vertices.length).downto(1) { |i|
-      vertex_id = @finishing_times.index(i) + 1
-      @scc_leader_id = vertex_id
-      puts "find_strongly_connected_components, i=" + i.to_s
-      depth_first_search_iterative(vertex_id) if !@explored_vertices[vertex_id-1]
+    i = 0
+    @vertices.reverse_each { |vertex|
+      @scc_leader_id = vertex.id
+      i+=1
+      puts i
+      depth_first_search_iterative(vertex.id) if !@explored_vertices[vertex.id.to_i-1]
     }
   end
 
+  def sort_vertices_according_to_finishing_times
+    sorted_vertices = Array.new(@vertices.length)
+    @vertices.each_with_index {|vertex, vertex_index|
+      new_vertex_index = @finishing_times[vertex_index] - 1
+      sorted_vertices[new_vertex_index] = vertex
+    }
+    @vertices = sorted_vertices
+  end
+
   def get_scc_vertex_count
-    puts "get_scc_vertex_count"
     scc = Hash.new
     @scc_leaders.each{ |n| scc.has_key?(n) ? scc[n]+=1 : scc[n]=1 }
-    @scc_vertex_count = scc.values.sort.reverse!.[0..100].join(", ")
+    @scc_vertex_count = scc.values.sort.reverse!.first(100).join(", ")
   end
 end
 
@@ -185,7 +194,6 @@ def kosaraju_strongly_connected_components
   graphs = create_graphs("SCC.txt", 875714)
   #graphs = create_graphs("scc4.txt", 12)
   graphs[1].find_finishing_times
-  puts "assigning finishing times to forward graph"
   graphs[0].finishing_times = graphs[1].finishing_times
   graphs[0].find_strongly_connected_components
   #puts "Finishing times: " + graphs[1].finishing_times.join("; ")

@@ -69,21 +69,33 @@ class Graph
     dfs_vertices_stack.push(vertex)
 
     while vertex = dfs_vertices_stack.last
-      puts "last stack vertex: " + vertex.id.to_s
-      puts "was it explored before: " + (@explored_vertices[vertex.id.to_i-1] == true).to_s
+      #puts "last stack vertex: " + vertex.id.to_s
+      #puts "was it explored before: " + (@explored_vertices[vertex.id.to_i-1] == true).to_s
+
+      @explored_vertices[vertex.id.to_i-1] = true
+      if @pass == 2
+        #puts @scc_leader_id.to_s + " leader is assigned to " + vertex.id.to_s
+        @scc_leaders[vertex.id.to_i-1] = @scc_leader_id
+      end
+
+      head_vertex_to_explore = false
+      vertex.head_vertices.each{|head_vertex|
+        if @explored_vertices[head_vertex.id.to_i-1] != true
+          dfs_vertices_stack.push(head_vertex)
+          head_vertex_to_explore = true
+          break
+        end
+      }
+      next if head_vertex_to_explore
+
       if @explored_vertices[vertex.id.to_i-1] == true
         finish_vertex = dfs_vertices_stack.pop
         if(@pass == 1)
           @finishing_time+=1
           @finishing_times[finish_vertex.id.to_i-1] = @finishing_time
+          puts "finishing vertex: " + finish_vertex.id.to_s + ", finishing time: " + @finishing_time.to_s
         end
-        next
       end
-      @explored_vertices[vertex.id.to_i-1] = true
-      @scc_leaders[vertex.id.to_i-1] = @scc_leader_id if @pass == 2
-      vertex.head_vertices.each{|head_vertex|
-        dfs_vertices_stack.push(head_vertex) if @explored_vertices[head_vertex.id.to_i-1] != true
-      }
     end
   end
 
@@ -95,9 +107,7 @@ class Graph
 
     (@vertices.length-1).downto(0) { |i|
       if !@explored_vertices[i]
-          puts "starting node: " + i.to_s
-          puts @finishing_times.inspect
-          puts @explored_vertices.inspect
+        puts "find_finishing_times, i=" + i.to_s
         depth_first_search_iterative(@vertices[i].id)
       end
     }
@@ -110,21 +120,18 @@ class Graph
     @pass = 2
 
     (@vertices.length).downto(1) { |i|
-      #puts @finishing_times.join(", ")
-      #puts i
-      #puts @finishing_times.index(i)
       vertex_id = @finishing_times.index(i) + 1
       @scc_leader_id = vertex_id
+      puts "find_strongly_connected_components, i=" + i.to_s
       depth_first_search_iterative(vertex_id) if !@explored_vertices[vertex_id-1]
     }
   end
 
   def get_scc_vertex_count
+    puts "get_scc_vertex_count"
     scc = Hash.new
-    @scc_leaders.each{|n|
-      scc.has_key?(n) ? scc[n]+=1 : scc[n]=1
-    }
-    @scc_vertex_count = scc.values.sort
+    @scc_leaders.each{ |n| scc.has_key?(n) ? scc[n]+=1 : scc[n]=1 }
+    @scc_vertex_count = scc.values.sort.reverse!.[0..100].join(", ")
   end
 end
 
@@ -175,14 +182,15 @@ def create_graphs(filename, number_of_vertices)
 end
 
 def kosaraju_strongly_connected_components
-  #graphs = create_graphs("SCC.txt", 875714)
-  graphs = create_graphs("scc4.txt", 12)
+  graphs = create_graphs("SCC.txt", 875714)
+  #graphs = create_graphs("scc4.txt", 12)
   graphs[1].find_finishing_times
+  puts "assigning finishing times to forward graph"
   graphs[0].finishing_times = graphs[1].finishing_times
   graphs[0].find_strongly_connected_components
-  puts "Finishing times: " + graphs[1].finishing_times.join("; ")
-  puts "SCCs: " + graphs[0].scc_leaders.join("; ")
-  puts graphs[0].get_scc_vertex_count
+  #puts "Finishing times: " + graphs[1].finishing_times.join("; ")
+  #puts "SCCs: " + graphs[0].scc_leaders.join("; ")
+  puts "SCC vertex counts: " + graphs[0].get_scc_vertex_count
 end
 
 

@@ -92,7 +92,7 @@ class Graph
         if(@pass == 1)
           @finishing_time+=1
           @finishing_times[finish_vertex.id.to_i-1] = @finishing_time
-          puts "finishing vertex: " + finish_vertex.id.to_s + ", finishing time: " + @finishing_time.to_s
+          #puts "finishing vertex: " + finish_vertex.id.to_s + ", finishing time: " + @finishing_time.to_s
         end
       end
     end
@@ -119,11 +119,11 @@ class Graph
     @pass = 2
     sort_vertices_according_to_finishing_times
 
-    i = 0
+    #i = 0
     @vertices.reverse_each { |vertex|
       @scc_leader_id = vertex.id
-      i+=1
-      puts i
+      #i+=1
+      #puts i
       depth_first_search_iterative(vertex.id) if !@explored_vertices[vertex.id.to_i-1]
     }
   end
@@ -185,21 +185,28 @@ def create_graphs(filename, number_of_vertices)
   	head_vertex = reverse_graph.find_or_create_vertex(edge[0])
     tail_vertex.find_or_add_head(head_vertex)
     i+=1
-    puts i if i%100000 == 0 
+    #puts i if i%100000 == 0 
   end
   return [forward_graph, reverse_graph]
 end
 
 def kosaraju_strongly_connected_components
+  puts "Building graphs. " + print_time
   graphs = create_graphs("SCC.txt", 875714)
-  #graphs = create_graphs("scc4.txt", 12)
+  # => graphs = create_graphs("test.txt", 11)
+  puts "Finding finishing times. " + print_time
   graphs[1].find_finishing_times
   graphs[0].finishing_times = graphs[1].finishing_times
+  puts "Finding SCCs. " + print_time
   graphs[0].find_strongly_connected_components
   #puts "Finishing times: " + graphs[1].finishing_times.join("; ")
   #puts "SCCs: " + graphs[0].scc_leaders.join("; ")
   puts "SCC vertex counts: " + graphs[0].get_scc_vertex_count
+  puts "Algorithm finished. " + print_time
 end
 
+def print_time
+  Time.now.strftime("Current time: %Y-%m-%d %I:%M:%S")
+end
 
 kosaraju_strongly_connected_components

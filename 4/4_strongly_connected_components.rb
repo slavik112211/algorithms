@@ -61,21 +61,21 @@ class Graph
     end
   end
 
-  def depth_first_search_iterative(starting_vertex_id)
+  def depth_first_search_iterative(starting_vertex)
     dfs_vertices_stack = Array.new
-
-    current_vertex_id = starting_vertex_id
-    vertex = find_vertex current_vertex_id
-    dfs_vertices_stack.push(vertex)
+    dfs_vertices_stack.push(starting_vertex)
+    @scc_leader_id = starting_vertex.id
 
     while vertex = dfs_vertices_stack.last
       #puts "last stack vertex: " + vertex.id.to_s
       #puts "was it explored before: " + (@explored_vertices[vertex.id.to_i-1] == true).to_s
 
-      @explored_vertices[vertex.id.to_i-1] = true
-      if @pass == 2
+      if @pass == 2 and @explored_vertices[vertex.id.to_i-1] != true
         @scc_leaders[vertex.id.to_i-1] = @scc_leader_id
+        #puts "assigning leader " + @scc_leader_id.to_s + "to vertex: " + vertex.id.to_s
       end
+
+      @explored_vertices[vertex.id.to_i-1] = true
 
       head_vertex_to_explore = false
       vertex.head_vertices.each{|head_vertex|
@@ -87,13 +87,11 @@ class Graph
       }
       next if head_vertex_to_explore
 
-      if @explored_vertices[vertex.id.to_i-1] == true
-        finish_vertex = dfs_vertices_stack.pop
-        if(@pass == 1)
-          @finishing_time+=1
-          @finishing_times[finish_vertex.id.to_i-1] = @finishing_time
-          #puts "finishing vertex: " + finish_vertex.id.to_s + ", finishing time: " + @finishing_time.to_s
-        end
+      finish_vertex = dfs_vertices_stack.pop
+      if(@pass == 1)
+        @finishing_time+=1
+        @finishing_times[finish_vertex.id.to_i-1] = @finishing_time
+        #puts "finishing vertex: " + finish_vertex.id.to_s + ", finishing time: " + @finishing_time.to_s
       end
     end
   end
@@ -104,10 +102,8 @@ class Graph
     @finishing_time = 0
     @pass = 1
 
-    (@vertices.length-1).downto(0) { |i|
-      if !@explored_vertices[i]
-        depth_first_search_iterative(@vertices[i].id)
-      end
+    @vertices.reverse_each { |vertex|
+      depth_first_search_iterative(vertex) if !@explored_vertices[vertex.id.to_i-1]
     }
   end
 
@@ -119,12 +115,8 @@ class Graph
     @pass = 2
     sort_vertices_according_to_finishing_times
 
-    #i = 0
     @vertices.reverse_each { |vertex|
-      @scc_leader_id = vertex.id
-      #i+=1
-      #puts i
-      depth_first_search_iterative(vertex.id) if !@explored_vertices[vertex.id.to_i-1]
+      depth_first_search_iterative(vertex) if !@explored_vertices[vertex.id.to_i-1]
     }
   end
 
@@ -185,7 +177,7 @@ def create_graphs(filename, number_of_vertices)
   	head_vertex = reverse_graph.find_or_create_vertex(edge[0])
     tail_vertex.find_or_add_head(head_vertex)
     i+=1
-    #puts i if i%100000 == 0 
+    puts i if i%100000 == 0 
   end
   return [forward_graph, reverse_graph]
 end
@@ -193,7 +185,7 @@ end
 def kosaraju_strongly_connected_components
   puts "Building graphs. " + print_time
   graphs = create_graphs("SCC.txt", 875714)
-  # => graphs = create_graphs("test.txt", 11)
+  #graphs = create_graphs("scc5.txt", 11)
   puts "Finding finishing times. " + print_time
   graphs[1].find_finishing_times
   graphs[0].finishing_times = graphs[1].finishing_times

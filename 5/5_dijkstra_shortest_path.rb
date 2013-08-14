@@ -51,12 +51,12 @@ class Graph
           next_vertex = edge.head_vertex
         end
       }
-      #puts "current vertex: #{current_vertex.id.to_s}"
-      #puts "explored_vertices: #{@explored_vertices}"
-      #puts "shortest_paths: #{@shortest_paths}"
       @explored_vertices[current_vertex.id-1] = true
-      debugger if @explored_vertices[196] == true
       current_vertex = next_vertex
+      puts "current vertex: #{current_vertex.id.to_s}"
+      puts "next vertex: #{next_vertex.id.to_s}"
+      puts "explored_vertices: #{@explored_vertices}"
+      puts "shortest_paths: #{@shortest_paths}"
     end
   end
 
@@ -111,7 +111,7 @@ def create_graph(filename, number_of_vertices)
   graph = Graph.new(number_of_vertices)
     
   File.open(filename, 'r').each_line do |line|
-  	vertices = line.strip.split("\t")
+  	vertices = line.strip.split
 
     tail_vertex_id = vertices.shift
   	tail_vertex = graph.find_or_create_vertex(tail_vertex_id.to_i)
@@ -129,6 +129,6 @@ def create_graph(filename, number_of_vertices)
   return graph
 end
 
-graph = create_graph("dijkstraData1.txt", 200)
+graph = create_graph("graph3.txt", 6)
 graph.dijkstra_shortest_path
 puts graph.shortest_paths.each_with_index.map { |shortest_path,i| "#{i+1}: #{shortest_path}" }.inspect

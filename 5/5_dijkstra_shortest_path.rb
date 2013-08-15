@@ -1,4 +1,5 @@
 require 'debugger'
+require 'set'
 
 class Graph
   attr_accessor :vertices, :explored_vertices, :edges, :shortest_paths
@@ -32,32 +33,32 @@ class Graph
   end
 
   def dijkstra_shortest_path
+    vertices_frontier = Set.new
     current_vertex = @vertices[0]
     @shortest_paths[0] = 0
 
     while !all_vertices_explored?
-      next_vertex=nil
-      shortest_path_amongst_head_vertices = 1000000
-      current_vertex.edges.each{ |edge|
-        next if @explored_vertices[edge.head_vertex.id-1] == true
+      #puts "current vertex: #{current_vertex.id.to_s}"
+      edges = current_vertex.edges.select {|edge| @explored_vertices[edge.head_vertex.id-1] != true }
+      edges.each{ |edge|
         shortest_path_to_vertex = @shortest_paths[current_vertex.id-1] + edge.path_length
         if(@shortest_paths[edge.head_vertex.id-1].nil? or 
            @shortest_paths[edge.head_vertex.id-1] > shortest_path_to_vertex)
           @shortest_paths[edge.head_vertex.id-1] = shortest_path_to_vertex
         end
-        if(shortest_path_to_vertex < shortest_path_amongst_head_vertices and 
-           @explored_vertices[edge.head_vertex.id-1] != true)
-          shortest_path_amongst_head_vertices = shortest_path_to_vertex
-          next_vertex = edge.head_vertex
-        end
       }
       @explored_vertices[current_vertex.id-1] = true
-      current_vertex = next_vertex
-      puts "current vertex: #{current_vertex.id.to_s}"
-      puts "next vertex: #{next_vertex.id.to_s}"
-      puts "explored_vertices: #{@explored_vertices}"
-      puts "shortest_paths: #{@shortest_paths}"
+      vertices_frontier.merge(edges.map(&:head_vertex))
+      current_vertex = choose_next_vertex_from_frontier vertices_frontier
+      #puts "explored_vertices: #{@explored_vertices}"
+      #puts "shortest_paths: #{@shortest_paths}"
     end
+  end
+
+  def choose_next_vertex_from_frontier vertices_frontier
+    shortest_path_vertex = vertices_frontier.min {|a,b| @shortest_paths[a.id-1] <=> @shortest_paths[b.id-1]}
+    vertices_frontier.delete(shortest_path_vertex)
+    shortest_path_vertex
   end
 
   def all_vertices_explored?
@@ -129,6 +130,6 @@ def create_graph(filename, number_of_vertices)
   return graph
 end
 
-graph = create_graph("graph3.txt", 6)
+graph = create_graph("dijkstraData.txt", 200)
 graph.dijkstra_shortest_path
 puts graph.shortest_paths.each_with_index.map { |shortest_path,i| "#{i+1}: #{shortest_path}" }.inspect

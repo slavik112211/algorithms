@@ -91,27 +91,12 @@ class HashTable
       if hash_table.has_key?(inverse_bucket_key)
         hash_table[inverse_bucket_key].each{|y|
           sum = x + y
-          if sum >= -10000 and sum <= 10000
-            if sum_pairs[sum].nil?
-              sum_pairs[sum]=[[x, y]]
-            else
-              sum_pairs[sum]<<[x, y] unless sum_pairs[sum].flatten.include? x
-            end
+          if sum >= -10000 and sum <= 10000 and x != y
+            sum_pairs[sum]=true if sum_pairs[sum].nil?
           end
         }
       end
     }
-  end
-
-  def count_sum_pairs
-    sum_pairs.sort.each{|key, value| puts "#{key}, #{value.length}"}
-  end
-
-  #answer: 43709
-  def count_sum_pairs_total
-    sum_pairs_total = 0
-    sum_pairs.values.each{|sum_pairs_for_one_sum| sum_pairs_total += sum_pairs_for_one_sum.length }
-    sum_pairs_total
   end
 
 =begin
@@ -138,4 +123,5 @@ hash_table = HashTable.new "algo1_programming_prob_2sum.txt"
 # # Print a flat profile to text
 # printer = RubyProf::FlatPrinter.new(result)
 # printer.print(STDOUT)
-puts hash_table.count_sum_pairs_total
+puts hash_table.sum_pairs.length
+#427

@@ -1,5 +1,5 @@
-require 'debugger'
-require 'ruby-prof'
+#require 'debugger'
+#require 'ruby-prof'
 
 class HashTable
   attr_accessor :hash_table, :sum_pairs
@@ -21,7 +21,11 @@ class HashTable
   def insert(element)
     key = hash_by_20000_element_buckets(element)
     #hash_table[key].nil? ? hash_table[key]=[element] : hash_table[key]<<element
-    hash_table.has_key?(key) ? hash_table[key]<<element : hash_table[key]=[element]
+    if hash_table.has_key?(key)
+      hash_table[key] << element
+    else
+      hash_table[key] = [element]
+    end
   end
 
   def include?(element)
@@ -81,7 +85,6 @@ class HashTable
         i+=1
         find_pair_to_element bucket_key, element
         puts i# if i%10000 == 0
-        break if sum_pairs.length > 0
       }
     }
   end

@@ -107,5 +107,19 @@ describe Heap do
       popped_element.should == 9
       heap.container.should == [9,8,4,7,3,2]
     end
+
+    it "should return nil if heap is empty" do
+      nodes = [9,8,4]
+      heap = Heap.new(Heap::MAX, nodes)
+      heap.pop.should == 9
+      heap.pop.should == 8
+      heap.pop.should == 4
+      heap.pop.should == nil
+      heap.push 2; heap.push 7; heap.push 5;
+      heap.pop.should == 7
+      heap.pop.should == 5
+      heap.pop.should == 2
+      heap.pop.should == nil
+    end
   end
 end

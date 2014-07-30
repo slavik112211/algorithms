@@ -17,8 +17,10 @@ class Heap
   alias_method :insert, :push
 
   def pop
+    element = @container.pop
+    return element if @container.length == 0
     root_element = @container[0]
-    @container[0] = @container.pop
+    @container[0] = element
     bubble_down(0)
     return root_element
   end

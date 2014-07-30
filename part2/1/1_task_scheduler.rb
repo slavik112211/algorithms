@@ -1,4 +1,4 @@
-require_relative '../../6/heap.rb'
+require_relative '../../lib/heap.rb'
 
 =begin
 Greedy algorithms for minimizing the weighted sum of completion times.

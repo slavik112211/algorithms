@@ -1,5 +1,7 @@
 require 'debugger'
 require 'set'
+require_relative '../lib/graph_edge.rb'
+require_relative '../lib/graph_vertex.rb'
 
 class Graph
   attr_accessor :vertices, :explored_vertices, :edges, :shortest_paths
@@ -64,47 +66,6 @@ class Graph
   def all_vertices_explored?
     found = @explored_vertices.select{|explored_vertex| explored_vertex.nil? }
     return found.length>0 ? false : true
-  end
-end
-
-class Vertex
-  attr_accessor :id, :head_vertices, :edges
-
-  def initialize(id)
-    @id = id
-    @head_vertices = Array.new
-    @edges         = Array.new
-  end
-
-  def to_s  
-    "Vertex #{@id}. Head vertices: " + @head_vertices.map{|head_vertex| head_vertex.id.to_s }.join(" ") 
-  end
-
-  def find_or_add_head(vertex)
-  	@head_vertices<<vertex if !has_as_head?(vertex)
-  end
-
-  def add_edge(edge)
-    @edges<<edge
-  end
-
-  def has_as_head?(vertex)
-  	found = @head_vertices.select{|head_vertex| head_vertex.id == vertex.id }
-  	return found.length>0 ? true : false
-  end
-end
-
-class Edge
-  attr_accessor :tail_vertex, :head_vertex, :path_length
-
-  def initialize(tail_vertex, head_vertex, path_length)
-    @tail_vertex = tail_vertex
-    @head_vertex = head_vertex
-    @path_length = path_length
-  end
-
-  def to_s  
-    "#{head_vertex.id}, #{path_length}"
   end
 end
 

@@ -1,4 +1,4 @@
-require_relative 'heap.rb'
+require_relative '../lib/heap.rb'
 
 left_half_heap  = Heap.new(Heap::MAX)
 right_half_heap = Heap.new(Heap::MIN)

@@ -1,6 +1,11 @@
 # Heap is stored as array of elements
 # 1st element - root, 2nd, 3rd elements - 2nd level
 # 4th, 5th, 6th, 7th elements - 3rd level, etc
+# Heap property
+# All nodes are either [greater than or equal to] or [less than or equal to]
+# each of its children, according to a comparison predicate defined for the heap.
+# The ordering of siblings in a heap is not specified by the heap property, 
+# a single node's two children can be freely interchanged.
 class Heap
   MIN = 1; MAX = 2
   attr_reader :container

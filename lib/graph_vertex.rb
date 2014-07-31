@@ -23,4 +23,12 @@ class Vertex
     found = @head_vertices.select{|head_vertex| head_vertex.id == vertex.id }
     return found.length>0 ? true : false
   end
+
+  def eql?(other)
+    @id == other.id
+  end
+
+  def hash
+    @id
+  end
 end

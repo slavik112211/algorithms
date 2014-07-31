@@ -8,6 +8,10 @@ class Edge
   end
 
   def to_s  
-    "#{head_vertex.id}, #{path_length}"
+    "#{head_vertex.id}, #{tail_vertex.id}, #{path_length}"
+  end
+
+  def opposite_vertex(vertex)
+    tail_vertex.eql?(vertex) ? head_vertex : tail_vertex
   end
 end

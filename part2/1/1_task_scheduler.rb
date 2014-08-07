@@ -26,7 +26,7 @@ Answer: 3087839038
 =end
 
 class TaskScheduler
-  attr_reader :heap, :completion_times
+  attr_reader :heap, :weighted_completion_times
   def initialize file_name, schedule_by
     file_name ||= "jobs.txt"
     schedule_by ||= :difference
@@ -34,7 +34,7 @@ class TaskScheduler
 
     File.open(file_name, 'r').each_line.with_index { |line, index|
       if index == 0 #skip first line, as it denotes the total amount of jobs
-        @completion_times = Array.new(line.to_i)
+        @weighted_completion_times = Array.new(line.to_i)
         next
       end
       line = line.split(" ")
@@ -47,14 +47,14 @@ class TaskScheduler
     accumulated_completion_time = 0
     i = 0
     while (task = @heap.pop) != nil
-      accumulated_completion_time = task.weight + accumulated_completion_time
-      @completion_times[i] = accumulated_completion_time
+      accumulated_completion_time = task.length + accumulated_completion_time
+      @weighted_completion_times[i] = [task.weight, accumulated_completion_time]
       i+=1
     end
   end
 
-  def sum_of_completion_times
-    @completion_times.inject(0) { |result, element| result + element }
+  def sum_of_weighted_completion_times
+    @weighted_completion_times.inject(0) { |result, element| result + element[0]*element[1] }
   end
 end
 
@@ -97,14 +97,17 @@ class Task
   end
 end
 
-scheduler = TaskScheduler.new("jobs.txt", :difference)
-scheduler.calculate_completion_times
+def execute
+  scheduler = TaskScheduler.new("jobs.txt", :difference)
+  scheduler.calculate_completion_times
 
-puts "By weight - length difference: " + scheduler.sum_of_completion_times.to_s
-# 3119219110
+  puts "By weight - length difference: " + scheduler.sum_of_weighted_completion_times.to_s
+  #69119377652
 
-scheduler = TaskScheduler.new("jobs.txt", :ratio)
-scheduler.calculate_completion_times
+  scheduler = TaskScheduler.new("jobs.txt", :ratio)
+  scheduler.calculate_completion_times
 
-puts "By weight / length ratio: " + scheduler.sum_of_completion_times.to_s
-# 3087839038
+  puts "By weight / length ratio: " + scheduler.sum_of_weighted_completion_times.to_s
+  #67311454237
+end
+execute

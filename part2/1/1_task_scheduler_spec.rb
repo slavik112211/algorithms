@@ -43,8 +43,8 @@ describe TaskScheduler do
       scheduler = TaskScheduler.new("jobs_test.txt", :difference)
       scheduler.calculate_completion_times
 
-      scheduler.completion_times.should == [88, 181, 222, 296, 320, 348, 393, 434, 465, 473]
-      scheduler.sum_of_completion_times.should == 3220
+      scheduler.weighted_completion_times.should == [[88, 4], [93, 47], [41, 60], [74, 119], [24, 129], [28, 159], [45, 246], [41, 329], [31, 402], [8, 452]]
+      scheduler.sum_of_weighted_completion_times.should == 64174
     end
   end
 
@@ -82,8 +82,8 @@ describe TaskScheduler do
       scheduler = TaskScheduler.new("jobs_test.txt", :ratio)
       scheduler.calculate_completion_times
 
-      scheduler.completion_times.should == [88, 129, 153, 246, 320, 348, 393, 434, 465, 473]
-      scheduler.sum_of_completion_times.should == 3049
+      scheduler.weighted_completion_times.should == [[88, 4], [41, 17], [24, 27], [93, 70], [74, 129], [28, 159], [45, 246], [41, 329], [31, 402], [8, 452]]
+      scheduler.sum_of_weighted_completion_times.should == 62842
     end
   end
 end

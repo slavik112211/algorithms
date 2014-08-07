@@ -1,5 +1,4 @@
-require_relative '../../../lib/graph_edge.rb'
-require_relative '../../../lib/graph_vertex.rb'
+require_relative '../../../lib/graph.rb'
 require_relative '../../../lib/heap.rb'
 
 =begin
@@ -20,44 +19,28 @@ Repeat until Vnew = V:
     2. Add v to Vnew, and {u, v} to Enew
 Output: Vnew and Enew describe a minimal spanning tree
 
-Graph input file format is as follows:
-
-[number_of_nodes] [number_of_edges]
-[one_node_of_edge_1] [other_node_of_edge_1] [edge_1_cost]
-[one_node_of_edge_2] [other_node_of_edge_2] [edge_2_cost]
-
 =end
 
 class PrimJarnikMST
-  attr_reader :vertices, :MST_edges
+  attr_reader :MST_edges
   def initialize file_name
     file_name ||= "edges.txt"
 
-    @vertices     = Array.new
     @MST_vertices = Array.new
     @MST_edges    = Array.new
     @frontier_edges = Array.new
 
-    File.open(file_name, 'r').each_line.with_index { |line, index|
-      line = line.split(" ")
-      if index == 0
-        @edges = Array.new(line[1].to_i)
-        next
-      end
-      
-      vertex1 = retrieve_vertex(line[0].to_i)
-      vertex2 = retrieve_vertex(line[1].to_i)
+    @graph = Graph.new file_name
+  end
 
-      edge = Edge.new(vertex1, vertex2, line[2].to_i)
-      vertex1.add_edge(edge)
-      vertex2.add_edge(edge)
-    }
+  def vertices
+    @graph.vertices
   end
 
   def compute_minimum_spanning_tree
-    while !@vertices.empty?
+    while !vertices.empty?
       vertex = pick_edge_to_mst
-      @vertices.delete(vertex)
+      vertices.delete(vertex)
       @MST_vertices << vertex
 
       # when a vertex is added to MST, the set of edges that 
@@ -89,7 +72,7 @@ class PrimJarnikMST
   def pick_edge_to_mst
     if @MST_vertices.empty?
       #initially, any vertex can be picked
-      vertex = @vertices.find{|vertex| vertex.id == 1}
+      vertex = vertices.find{|vertex| vertex.id == 1}
     else
       edge = @frontier_edges.min_by { |edge| edge.path_length }
       @MST_edges << edge
@@ -97,16 +80,6 @@ class PrimJarnikMST
     end
     vertex
   end
-
-  def retrieve_vertex(id)
-    vertex = @vertices.find{|vertex| vertex.id == id}
-    unless(vertex)
-      vertex = Vertex.new(id)
-      @vertices << vertex
-    end
-    vertex
-  end
-
 end
 
 def execute

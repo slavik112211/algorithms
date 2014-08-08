@@ -24,6 +24,11 @@ class Vertex
     return found.length>0 ? true : false
   end
 
+  def incoming_edges
+    return @incoming_edges if @incoming_edges
+    @incoming_edges = @edges.select {|edge| @id == edge.head_vertex.id }
+  end
+
   def eql?(other)
     @id == other.id
   end

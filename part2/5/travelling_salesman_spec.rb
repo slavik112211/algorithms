@@ -42,6 +42,36 @@ describe TravellingSalesman do
       }
   end
 
+  it "should find all the point subsets containing 1st point" do
+    tsp = TravellingSalesman.new("tsp_test1.txt")
+    tsp.find_subsets_of_points({:with_first_point_only=>true})
+
+    # tsp_test1.txt has 5 points total set, subsets include upto 4 points.
+    tsp.points_subsets.should == 
+      { 
+        1=>[1], 
+        2=>[3, 5, 9, 17], 
+        3=>[7, 11, 13, 19, 21, 25], 
+        4=>[15, 23, 27, 29],
+        5=>[31]
+      }
+
+    # same subsets, but in binary form
+    points_subsets = tsp.points_subsets.each { |subset_size| 
+      subset_size[1].map! { |subset| 
+        subset.to_s(2).rjust(tsp.points_amount, padstr='0')
+      }
+    }
+    points_subsets.should ==
+      {
+        1=>["00001"], 
+        2=>["00011", "00101", "01001", "10001"], 
+        3=>["00111", "01011", "01101", "10011", "10101", "11001"], 
+        4=>["01111", "10111", "11011", "11101"],
+        5=>["11111"]
+      }
+  end
+
   it "should filter subsets containing first point" do
     subsets = [7, 11, 13, 14, 19, 21, 22, 25, 26, 28]
     # subsets = ["00111", "01011", "01101", "01110", "10011", "10101", "10110", "11001", "11010", "11100"]
@@ -70,11 +100,8 @@ describe TravellingSalesman do
 
   it "should calculate the TSP path using Held-Karp algorithm" do
     tsp = TravellingSalesman.new("tsp_test1.txt")
-    tsp.find_subsets_of_points
-    tsp.held_karp_algorithm
+    tsp.calculate_optimal_path
     tsp.solution.should == {:prev_point=>2, :path_length=>8387.077130278542} 
-
-    tsp.reconstruct_optimal_path
     tsp.optimal_path.should == [1, 3, 4, 5, 2, 1]
   end
 end

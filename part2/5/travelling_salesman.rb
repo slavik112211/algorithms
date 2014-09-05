@@ -21,6 +21,7 @@
   also NP-complete, but doesn't require finding a cycle).
 
   gnuplot: plot "tsp.txt"
+  /media/ntfs/jruby-1.7.15/bin/jruby -J-Xmx1900m -J-verbose:gc travelling_salesman.rb
 
   http://en.wikipedia.org/wiki/User:LIU_CS_MUN/draft_of_the_page_for_Held-Karp_algorithm
 =end
@@ -59,12 +60,13 @@ class TravellingSalesman
   # http://en.wikipedia.org/wiki/User:LIU_CS_MUN/draft_of_the_page_for_Held-Karp_algorithm
   def held_karp_algorithm
     puts "Calculating optimal path by Held-Karp algorithm"
-    # 2-dim array indexed by points-subset S and destination point j
-    @subsolutions = Hash.new{|h, k| h[k] = Hash.new{|h, k| h[k] = Hash.new } }
-    # @subsolutions = Hash.new{|h, k| h[k] = Hash.new }
-    @subsolutions[1][1][:path_length] = 0
+    # 2-dim arrays indexed by points-subset S and destination point j
+    @subsolutions_path_lengths = Hash.new{|h, k| h[k] = Hash.new }
+    @subsolutions_path_points  = Hash.new{|h, k| h[k] = Hash.new }
+    @subsolutions_path_lengths[1][1] = 0
+
     (2..@points_amount).each do |subset_size|
-      subsets = TravellingSalesman.simple_filter_subsets_containing_first_point(@points_subsets[subset_size])
+      subsets = @points_subsets[subset_size]
       puts "Subset size: " + subset_size.to_s + "; Subsets total: " + subsets.size.to_s
       i = 1
       subsets.each do |subset|
@@ -72,9 +74,13 @@ class TravellingSalesman
         points_of_subset = TravellingSalesman.points_of_subset(subset)
         points_of_subset.each do |j| # j - destination point
           subset_without_j = TravellingSalesman.find_subset_minus_point(subset, j)
-          @subsolutions[subset][j] = find_optimal_path_from_subset_to_destination_point(subset_without_j, j)
+          optimal_path = find_optimal_path_from_subset_to_destination_point(subset_without_j, j)
+          @subsolutions_path_lengths[subset][j] = optimal_path[:path_length]
+          @subsolutions_path_points [subset][j] = optimal_path[:prev_point]
+          optimal_path = nil
         end
       end
+      remove_subsolutions_of_size(subset_size-1)
     end
     #Last hop of the path - after visiting all points, calculating the shortest return path to point 1.
     #Subset = a complete set of all points, for ex. "11111", destination point - 1st.
@@ -85,8 +91,8 @@ class TravellingSalesman
   def find_optimal_path_from_subset_to_destination_point subset_without_j, j
     optimal_path_length = Float::INFINITY
     optimal_path = Hash.new
-    @subsolutions[subset_without_j].keys.each do |k| # k - destination point in subset "subset_without_j"
-      path_length = @subsolutions[subset_without_j][k][:path_length] + @distances[k-1][j-1] # @distances is a 2-dim array, indexes start from 0
+    @subsolutions_path_lengths[subset_without_j].keys.each do |k| # k - destination point in subset "subset_without_j"
+      path_length = @subsolutions_path_lengths[subset_without_j][k] + @distances[k-1][j-1] # @distances is a 2-dim array, indexes start from 0
       if path_length < optimal_path_length
         optimal_path_length = path_length
         optimal_path[:prev_point]  = k
@@ -105,7 +111,7 @@ class TravellingSalesman
     begin
       @optimal_path << point
       smaller_subset = TravellingSalesman.find_subset_minus_point(subset, point)
-      point = @subsolutions[subset][point][:prev_point]
+      point = @subsolutions_path_points[subset][point]
       subset = smaller_subset
     end while point
 
@@ -113,10 +119,21 @@ class TravellingSalesman
     @optimal_path.reverse!
   end
 
+  def remove_subsolutions_of_size size
+    puts "Removing subsolutions of size: " + size.to_s
+    @points_subsets[size].each { |subset|
+      @subsolutions_path_lengths[subset] = nil
+      @subsolutions_path_lengths.delete(subset)
+    }
+    @points_subsets[size] = nil
+    @points_subsets.delete(size)
+    time_elapsed
+  end
+
   # every subset of points is represented as a binary string.
   # For ex., 10011: points 1, 2, 5 are included in subset, and 3, 4 are not. (counting from right to left)
   # 10011 binary = 19 decimal
-  def find_subsets_of_points
+  def find_subsets_of_points(options={})
     puts "Calculating subsets"
     puts "Set of #{@points_amount} points: 2^#{@points_amount} subsets = #{2**@points_amount} different subsets"
     @points_subsets = Hash.new{|h, k| h[k] = []}
@@ -124,7 +141,9 @@ class TravellingSalesman
     (1..2**@points.length-1).each { |i|
       p i if i%100000 == 0
       subset_size = i.to_s(2).count("1")
-      @points_subsets[subset_size] << i
+      if (options[:with_first_point_only] != true) || (options[:with_first_point_only] == true and i % 2 == 1)
+        @points_subsets[subset_size] << i
+      end
     }
     puts "Done calculating subsets"
   end
@@ -172,7 +191,7 @@ class TravellingSalesman
   def calculate_optimal_path
     @start_time = Time.now.to_f
 
-    find_subsets_of_points
+    find_subsets_of_points({:with_first_point_only=>true})
     time_elapsed
     held_karp_algorithm
     time_elapsed
@@ -184,5 +203,8 @@ class TravellingSalesman
   end
 end
 
-# tsp = TravellingSalesman.new("tsp_test1.txt")
+# tsp = TravellingSalesman.new("tsp.txt")
+
+# GC::Profiler.enable
 # tsp.calculate_optimal_path
+# puts GC::Profiler.result

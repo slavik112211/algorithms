@@ -1,3 +1,7 @@
+# require 'memory_profiler'
+# require 'byebug'
+# require 'gc_tracer'
+require 'debugger'
 =begin
   What is the difference between Travelling Salesman and finding Shortest Path?
   the TSP is to find a path that contains a permutation of every node in the graph, 
@@ -71,16 +75,18 @@ class TravellingSalesman
       i = 1
       subsets.each do |subset|
         if i%10000 == 0 then p i; time_elapsed end; i += 1 # debug info
-        points_of_subset = TravellingSalesman.points_of_subset(subset)
+        points_of_subset = points_of_subset_fast(subset, {omit_first: true})
         points_of_subset.each do |j| # j - destination point
-          subset_without_j = TravellingSalesman.find_subset_minus_point(subset, j)
+          subset_without_j = TravellingSalesman.find_subset_minus_point_fast(subset, j)
           optimal_path = find_optimal_path_from_subset_to_destination_point(subset_without_j, j)
+
           @subsolutions_path_lengths[subset][j] = optimal_path[:path_length]
           @subsolutions_path_points [subset][j] = optimal_path[:prev_point]
           optimal_path = nil
         end
       end
       remove_subsolutions_of_size(subset_size-1)
+      GC.start
     end
     #Last hop of the path - after visiting all points, calculating the shortest return path to point 1.
     #Subset = a complete set of all points, for ex. "11111", destination point - 1st.
@@ -110,7 +116,7 @@ class TravellingSalesman
 
     begin
       @optimal_path << point
-      smaller_subset = TravellingSalesman.find_subset_minus_point(subset, point)
+      smaller_subset = TravellingSalesman.find_subset_minus_point_fast(subset, point)
       point = @subsolutions_path_points[subset][point]
       subset = smaller_subset
     end while point
@@ -141,10 +147,17 @@ class TravellingSalesman
     (1..2**@points.length-1).each { |i|
       p i if i%100000 == 0
       subset_size = i.to_s(2).count("1")
+      subset_size = subset_size_fast i
       if (options[:with_first_point_only] != true) || (options[:with_first_point_only] == true and i % 2 == 1)
         @points_subsets[subset_size] << i
       end
     }
+
+    (2..@points_amount).each do |subset_size|
+      subsets = @points_subsets[subset_size]
+      puts "Subset size: " + subset_size.to_s + "; Subsets total: " + subsets.size.to_s
+    end
+
     puts "Done calculating subsets"
   end
 
@@ -156,7 +169,7 @@ class TravellingSalesman
   # Subset "01101" (in binary, 13 in decimal) contains 3 points out of 5: 1st, 3rd, 4th.
   # As 1st point is always represented by "1" in both decimal and binary, it's sufficient to filter
   # subsets that are represented by odd numbers.
-  def self.simple_filter_subsets_containing_first_point subsets
+  def self.filter_subsets_containing_first_point_fast subsets
     subsets.select {|subset| subset % 2 == 1 }
   end
 
@@ -174,12 +187,44 @@ class TravellingSalesman
     points_of_subset
   end
 
+  # 27 decimal = 11011 binary, counting right to left:
+  # 1st (excluded), 2nd, 4th, 5th.
+  def self.simple_points_of_subset subset
+    subset = subset.to_s(2)
+    (2 ... subset.length+1).find_all { |i| subset[-i,1] == '1' }
+  end
+
   #27 = 11011, counting right to left: 1st, 2nd, 4th, 5th.
   #11011 - 4th point = 10011 = 19, or a set of 1st, 2nd and 5th points.
   def self.find_subset_minus_point(subset, point)
     subset = subset.to_s(2)
     subset[-point] = "0"
     subset.to_i(2)
+  end
+
+  # 27 = 11011, counting right to left: 1st, 2nd, 4th, 5th.
+  # 11011 - 4th point = 10011 = 19, or a set of 1st, 2nd and 5th points.
+  # CORRECT ONLY WHEN a subset has that point (point position set to 1),
+  # otherwise bitwise & would need to be used
+  def self.find_subset_minus_point_fast subset, point
+    subset - 2**(point-1)
+  end
+
+  def subset_size_fast subset
+    points_of_subset_fast(subset).size
+  end
+
+  # bitwise AND is used to determine if incoming subset has a specific bit set:
+  # points_of_subset <<  4 if (subset & 0b00000_00000_00000_00000_01000 == 0b00000_00000_00000_00000_01000)
+  def points_of_subset_fast subset, options={}
+    points_of_subset = []
+    lower_range_bound = options[:omit_first] ? 2 : 1
+    power = 1; while (2**power <= subset) do power +=1 end
+
+    (lower_range_bound .. power).each do |i|
+      points_of_subset << i if (subset & 2**(i-1) == 2**(i-1))
+    end
+    points_of_subset
   end
 
   def time_elapsed
@@ -203,8 +248,16 @@ class TravellingSalesman
   end
 end
 
-# tsp = TravellingSalesman.new("tsp.txt")
+ tsp = TravellingSalesman.new("tsp.txt")
 
 # GC::Profiler.enable
-# tsp.calculate_optimal_path
+# report = MemoryProfiler.report do
+ tsp.calculate_optimal_path
+# end
 # puts GC::Profiler.result
+
+# report.pretty_print
+
+# GC::Tracer.start_logging("gc_tracer.csv") do
+#   tsp.calculate_optimal_path
+# end

@@ -79,15 +79,19 @@ describe TravellingSalesman do
     filtered_subsets.should == [7, 11, 13, 19, 21, 25]
     # filtered_subsets.should == ["00111", "01011", "01101", "10011", "10101", "11001"]
 
-    filtered_subsets = TravellingSalesman.simple_filter_subsets_containing_first_point(subsets)
+    filtered_subsets = TravellingSalesman.filter_subsets_containing_first_point_fast(subsets)
     filtered_subsets.should == [7, 11, 13, 19, 21, 25]
   end
 
   it "should return points of a subset" do 
     points = TravellingSalesman.points_of_subset(27) #"11011"
-
     #"11011", counting right to left: 1st (excluded), 2nd, 4th, 5th.
     points.should == [2, 4, 5]
+
+    tsp = TravellingSalesman.new("tsp_test1.txt")
+    points = tsp.points_of_subset_fast(27, {omit_first: true}) #"11011"
+    points.should == [2, 4, 5]
+
   end
 
   it "should subtract a point from a set of points" do
@@ -95,6 +99,9 @@ describe TravellingSalesman do
 
     #27 = 11011, counting right to left: 1st, 2nd, 4th, 5th.
     #11011 - 4th point = 10011 = 19, or a set of 1st, 2nd and 5th points.
+    subset.should == 19
+
+    subset = TravellingSalesman.find_subset_minus_point_fast(27, 4) #"11011"
     subset.should == 19
   end
 

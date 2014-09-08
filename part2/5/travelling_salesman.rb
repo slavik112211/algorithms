@@ -1,7 +1,7 @@
 # require 'memory_profiler'
 # require 'byebug'
 # require 'gc_tracer'
-require 'debugger'
+# require 'debugger'
 =begin
   What is the difference between Travelling Salesman and finding Shortest Path?
   the TSP is to find a path that contains a permutation of every node in the graph, 
@@ -68,16 +68,17 @@ class TravellingSalesman
     @subsolutions_path_lengths_1 = Array.new(1) { Array.new(1,0) }
     @subsolutions_path_lengths_2 = Array.new
     @subsolutions_path_points    = Array.new
+    @subset_indexes_1            = {1=>0}
+    @subset_indexes_2            = Hash.new
     subset_index_general = 0 # index of a subset amongst all subsets of all sizes
 
     (2..@points_amount).each do |subset_size|
-      exit if subset_size > 8
       subsets = @points_subsets[subset_size-1]
       puts "Subset size: " + subset_size.to_s + "; Subsets total: " + subsets.size.to_s
       subset_index = 0 # index of a subset in an array of subsets of equal size
       subsets.each do |subset|
         if subset_index%10000 == 0 then p subset_index; time_elapsed end; # debug info
-        points_of_subset = points_of_subset_fast(subset, {omit_first: true})
+        points_of_subset = points_of_subset_simple(subset)#, {omit_first: true})
         points_of_subset.each.with_index do |j, j_index| # j - destination point
           subset_without_j = TravellingSalesman.find_subset_minus_point_fast(subset, j)
           optimal_path = find_optimal_path_from_subset_to_destination_point(subset_without_j, j)
@@ -86,12 +87,14 @@ class TravellingSalesman
           prepare_2d_array(@subsolutions_path_points,    subset_index_general)
           @subsolutions_path_lengths_2[subset_index]        [j_index] = optimal_path[0]
           @subsolutions_path_points   [subset_index_general][j_index] = optimal_path[1]
+          @subset_indexes_2[subset] = subset_index
           optimal_path = nil
         end
         subset_index += 1
         subset_index_general += 1
       end
 
+      copy_hash(@subset_indexes_1, @subset_indexes_2)
       empty_2d_array(@subsolutions_path_lengths_1)
       remove_leftover_empty_arrays(@subsolutions_path_lengths_2)
       copy_2d_array(@subsolutions_path_lengths_1, @subsolutions_path_lengths_2)
@@ -124,6 +127,14 @@ class TravellingSalesman
     end
   end
 
+  def copy_hash(hash1, hash2)
+    hash1.clear
+    hash2.each do |key, value|
+      hash1[key] = hash2[key]
+    end
+    hash2.clear
+  end
+
   def remove_leftover_empty_arrays(array)
     i = -1
     while array[i].empty?
@@ -133,11 +144,14 @@ class TravellingSalesman
     array.compact!
   end
 
-  def find_optimal_path_from_subset_to_destination_point subset_without_j, j
+  def find_optimal_path_from_subset_to_destination_point subset_without_j, j#, subset_size
     optimal_path_length = Float::INFINITY
     optimal_path = Array.new
-    index = find_index_of_subset(subset_without_j)
-    points_of_subset = points_of_subset_fast(subset_without_j, {omit_first: true})
+    # not storing the indexes in a Hash, and performing the searching on each step is MUCH slower,
+    # than storing the indexes of a subset in a separate Hash.
+    # index = @points_subsets[subset_size-1].index(subset_without_j)
+    index = @subset_indexes_1[subset_without_j]
+    points_of_subset = points_of_subset_simple(subset_without_j)#, {omit_first: true})
     @subsolutions_path_lengths_1[index].each.with_index do |distance_to_k, k_index|
       # k - destination point in subset "subset_without_j"
       k = points_of_subset.empty? ? 1 : points_of_subset[k_index]
@@ -151,11 +165,6 @@ class TravellingSalesman
     optimal_path
   end
 
-  def find_index_of_subset subset
-    subset_size = subset_size_fast(subset)
-    @points_subsets[subset_size-1].index(subset)
-  end
-
   def reconstruct_optimal_path
     puts "Reconstructing optimal path"
     @optimal_path = [1]
@@ -167,7 +176,7 @@ class TravellingSalesman
       @optimal_path << point
       smaller_subset = TravellingSalesman.find_subset_minus_point_fast(subset, point)
       subset_index = @points_subsets_flattened.index(subset) - 1
-      points_of_subset = points_of_subset_fast(subset, {omit_first: true})
+      points_of_subset = points_of_subset_simple(subset)#, {omit_first: true})
       point_index = points_of_subset.index(point)
       point = point_index.nil? ? nil : @subsolutions_path_points[subset_index][point_index]
       subset = smaller_subset
@@ -272,6 +281,7 @@ class TravellingSalesman
     time_elapsed
     held_karp_algorithm
     time_elapsed
+    puts "Optimal path length: " + @solution[0].to_s
     reconstruct_optimal_path
     time_elapsed
 
@@ -280,11 +290,11 @@ class TravellingSalesman
   end
 end
 
-# tsp = TravellingSalesman.new("tsp.txt")
+tsp = TravellingSalesman.new("tsp.txt")
 
 # GC::Profiler.enable
 # report = MemoryProfiler.report do
-# tsp.calculate_optimal_path
+tsp.calculate_optimal_path
 # end
 # puts GC::Profiler.result
 
@@ -293,3 +303,16 @@ end
 # GC::Tracer.start_logging("gc_tracer.csv") do
 #   tsp.calculate_optimal_path
 # end
+
+
+
+
+# start_time: 1410167265.7553053; finish: 1410172096.7618632; diff: 4831.006557941437
+# Optimal path length: 26442.73030895475
+# Reconstructing optimal path
+# start_time: 1410167265.7553053; finish: 1410172116.757278; diff: 4851.0019726753235
+# Optimal path length: 26442.73030895475
+# Optimal path: [1, 2, 6, 10, 11, 12, 15, 19, 18, 22, 23, 21, 17, 20, 25, 24, 16, 14, 13, 9, 7, 3, 4, 8, 5, 1]
+
+# Run on a 64-bit computer, with 6Gb memory. Running time: 4851/60 = 1 hour 20 mins.
+# Peak memory consumption: upto 5 Gb.

@@ -1,6 +1,7 @@
 # require 'memory_profiler'
 # require 'byebug'
 # require 'gc_tracer'
+require 'debugger'
 =begin
   What is the difference between Travelling Salesman and finding Shortest Path?
   the TSP is to find a path that contains a permutation of every node in the graph, 
@@ -70,6 +71,7 @@ class TravellingSalesman
     subset_index_general = 0 # index of a subset amongst all subsets of all sizes
 
     (2..@points_amount).each do |subset_size|
+      exit if subset_size > 8
       subsets = @points_subsets[subset_size-1]
       puts "Subset size: " + subset_size.to_s + "; Subsets total: " + subsets.size.to_s
       subset_index = 0 # index of a subset in an array of subsets of equal size
@@ -89,8 +91,11 @@ class TravellingSalesman
         subset_index += 1
         subset_index_general += 1
       end
-      @subsolutions_path_lengths_1 = @subsolutions_path_lengths_2
-      @subsolutions_path_lengths_2 = Array.new
+
+      empty_2d_array(@subsolutions_path_lengths_1)
+      remove_leftover_empty_arrays(@subsolutions_path_lengths_2)
+      copy_2d_array(@subsolutions_path_lengths_1, @subsolutions_path_lengths_2)
+      empty_2d_array(@subsolutions_path_lengths_2)
       GC.start
     end
     #Last hop of the path - after visiting all points, calculating the shortest return path to point 1.
@@ -101,6 +106,31 @@ class TravellingSalesman
 
   def prepare_2d_array(array, i)
     array[i] ||= Array.new
+  end
+
+  def empty_2d_array(array)
+    array.each do |subarray|
+      subarray.map! do |element| nil end
+      subarray.compact!
+    end
+  end
+
+  def copy_2d_array(array1, array2)
+    (0..array2.length-1).each do |i|
+      prepare_2d_array(array1, i)
+      (0..array2[i].length-1).each do |j|
+        array1[i][j] = array2[i][j] 
+      end
+    end
+  end
+
+  def remove_leftover_empty_arrays(array)
+    i = -1
+    while array[i].empty?
+      array[i] = nil
+      i -= 1
+    end
+    array.compact!
   end
 
   def find_optimal_path_from_subset_to_destination_point subset_without_j, j
@@ -157,8 +187,7 @@ class TravellingSalesman
     # amount of all subsets of a set 2^n-1 (-1, as we're excluding the empty set {})
     (1..2**@points.length-1).each { |i|
       p i if i%100000 == 0
-      subset_size = i.to_s(2).count("1")
-      # subset_size = subset_size_fast i
+      subset_size = subset_size(i)
       if (options[:with_first_point_only] != true) || (options[:with_first_point_only] == true and i % 2 == 1)
         @points_subsets[subset_size-1] << i
       end
@@ -188,7 +217,7 @@ class TravellingSalesman
 
   # 27 decimal = 11011 binary, counting right to left:
   # 1st (excluded), 2nd, 4th, 5th.
-  def self.simple_points_of_subset subset
+  def points_of_subset_simple subset
     subset = subset.to_s(2)
     (2 ... subset.length+1).find_all { |i| subset[-i,1] == '1' }
   end
@@ -226,6 +255,10 @@ class TravellingSalesman
     points_of_subset_fast(subset).size
   end
 
+  def subset_size subset
+    subset.to_s(2).count("1")
+  end
+
   def time_elapsed
     time = Time.now.to_f
     diff = time - @start_time
@@ -247,11 +280,11 @@ class TravellingSalesman
   end
 end
 
-tsp = TravellingSalesman.new("tsp.txt")
+# tsp = TravellingSalesman.new("tsp.txt")
 
 # GC::Profiler.enable
 # report = MemoryProfiler.report do
-tsp.calculate_optimal_path
+# tsp.calculate_optimal_path
 # end
 # puts GC::Profiler.result
 

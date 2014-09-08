@@ -27,7 +27,8 @@
   gnuplot: plot "tsp.txt"
   /media/ntfs/jruby-1.7.15/bin/jruby -J-Xmx1900m -J-verbose:gc travelling_salesman.rb
 
-  http://en.wikipedia.org/wiki/User:LIU_CS_MUN/draft_of_the_page_for_Held-Karp_algorithm
+  http://en.wikipedia.org/wiki/User:LIU_CS_MUN/draft_of_the_page_for_Held-
+  http://www.travellingsalesmanmovie.com/ P!=NP?
 =end
 
 class TravellingSalesman
@@ -137,7 +138,7 @@ class TravellingSalesman
 
   def remove_leftover_empty_arrays(array)
     i = -1
-    while array[i].empty?
+    while array[i] and array[i].empty?
       array[i] = nil
       i -= 1
     end
@@ -171,6 +172,8 @@ class TravellingSalesman
     subset = @complete_points_set
     point = @solution[1]
     @points_subsets_flattened = @points_subsets.flatten
+    empty_2d_array(@points_subsets)
+    remove_leftover_empty_arrays(@points_subsets)
 
     begin
       @optimal_path << point

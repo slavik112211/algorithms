@@ -1,95 +1,78 @@
+# http://en.wikipedia.org/wiki/Disjoint-set_data_structure
+
+# A disjoint-set data structure, also called a union–find data structure 
+# or merge–find set, is a data structure that keeps track of a set of elements 
+# partitioned into a number of disjoint (nonoverlapping) subsets. 
+# It supports two useful operations:
+# 1. Find: Determine which subset a particular element is in. Find typically
+#    returns an item from this set that serves as its "representative"; by comparing 
+#    the result of two Find operations, one can determine whether two elements 
+#    are in the same subset.
+# 2. Union: Join two subsets into a single subset.
+
 class UnionFind
-  attr_reader :subsets
-  def initialize
-    @subsets = Array.new
+  attr_reader :nodes
+  def initialize size=nil, elements=nil
+    if elements
+      @nodes = Array.new(size)
+      make_set elements
+    else
+      @nodes = Array.new
+    end
+    
   end
 
-  def nodes
-    nodes = Array.new
-    @subsets.each { |subset| nodes += subset.nodes }
-    nodes
-  end
-
-  def add_subset elements
-    subset = LinkedList.new elements
-    @subsets << subset
-  end
-
-  def add_subsets elements
-    elements.each { |element|
-      add_subset [element]
+  def make_set elements
+    elements.each.with_index {|element, index|
+      node = Node.new element
+      @nodes[index] = node
     }
+  end
+
+  def add_element element
+    node = Node.new element
+    @nodes << node
   end
 
   # finds a subset, to which the node belongs,
   # returns the subset's leader object.
-  def find_subset node
-    node.leader.object
+  def find_subset_leader node
+    node.leader.element
   end
 
   def union node1, node2
     leader1 = node1.leader
     leader2 = node2.leader
-    subset1 = find_subset_of_node(node1)
-    subset2 = find_subset_of_node(node2)
 
     if leader1 == leader2
       return
-    elsif subset1.size >= subset2.size
-      subset1.add_list subset2
-      delete_set(subset2)
+    elsif leader1.subset_size >= leader2.subset_size
+      join_subsets leader1, leader2
     else
-      subset2.add_list subset1
-      delete_set(subset1)
+      join_subsets leader2, leader1
     end
   end
 
   private
 
-  def delete_set set
-    @subsets.delete set
-  end
-
-  def find_subset_of_node node
-    node_subset = nil
-    @subsets.each { |subset|
-      if subset.leader == node.leader
-        node_subset = subset
-        break
-      end 
+  # Make subset_1 bigger by joining subset_2 to it
+  def join_subsets subset_leader1, subset_leader2
+    @nodes.each {|node|
+      if node.leader == subset_leader2
+        node.leader = subset_leader1
+      end
     }
-    node_subset
-  end
-
-  class LinkedList
-    attr_accessor :size, :nodes, :leader
-    def initialize objects
-      @leader = nil
-      @size = 0
-      @nodes = Array.new(objects.size)
-      objects.each.with_index {|object, index|
-        node = Node.new object, @leader
-        @nodes[index] = node
-        @size += 1
-        @leader = node unless @leader
-      }
-    end
-
-    def add_list list
-      list.nodes.each {|node|
-        node.leader = @leader
-        @nodes << node
-      }
-      @size += list.size
-    end
+    # only the subset_leader has an updated counter of the set size
+    subset_leader1.subset_size += subset_leader2.subset_size 
   end
 
   class Node
-    attr_reader :object
-    attr_accessor :leader
-    def initialize object, leader=nil
-      @object = object
-      @leader = leader ? leader : self
+    attr_reader :element
+    attr_accessor :leader, :subset_size
+    def initialize element
+      @element = element
+      @leader = self
+      @subset_size = 1
     end
   end
 end

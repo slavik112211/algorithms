@@ -1,0 +1,24 @@
+A little late, but I'm glad to report that I've also finally cracked this assignment.
+
+I'm using Ruby throughout the course, and I thought I won't change it for one single assignment.
+It went alright, and at some point I had a working Held-Karp algorithm implementation. But it took 
+some good 2 days of memory optimizations to be able to run it over the 25 points set.
+
+I was interested in making it run for the whole set of 25 points, and decided not to use 
+clustering techniques described on this forum. One of the main things I've optimized was 
+changing from Hashes (maps) storage to arrays. That helped conquer the memory consumption 
+to some reasonable levels, but at the same time introduced tedious arrays indexes management. 
+Problem with high-level languages is that you're lacking fine-grained control over memory cleanup, 
+and you're supposed to rely on garbage collectors to dispose of unused data. So even though 
+I store only 2 iterations of subsolutions, it's hard to tell if the memory used by 
+previous iterations has really been released and available for usage.
+Also, with Ruby there's no way to use lesser-precision datatypes, the only Float available 
+is 64-bits long (on 64-bit systems).
+
+At the end, I succeeded calculating the shortest cycle on a 64-bit machine with 6 Gb of user-space memory.
+Running time: about 1 hour 20 mins. Peak memory consumption: up to 5 Gb.
+Although, the program fails to finish on my own 32-bit laptop with 2Gb memory, and would get stuck 
+calculating subsets of size 11. I feel great that all the memory optimizations have finally 
+made it feasible to complete the assignment.
+
+It was a great challenge, and a great example of why NP problems are actually considered "hard"

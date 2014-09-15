@@ -1,4 +1,4 @@
-require 'debugger'
+# require 'debugger'
 
 def quick_sort(array, min_index, max_index)
   if (max_index - min_index < 1) #at least 2 elements to sort
@@ -52,14 +52,14 @@ def find_median(array, min_index, max_index)
   middle_index = min_index + (max_index - min_index)/2
   
   #when only 2 elements in supplied array, both min_index and middle_index point to the left-most element.
-  if   ((array[middle_index] <= array[min_index]    and array[min_index]    < array[max_index]) or 
+  if   ((array[middle_index] <= array[min_index]    and array[min_index]    <= array[max_index]) or 
         (array[max_index]    <= array[min_index]    and array[min_index]    < array[middle_index]))
     return min_index
-  elsif((array[min_index]    <= array[middle_index] and array[middle_index] < array[max_index]) or
-        (array[max_index]    <= array[middle_index] and array[middle_index] < array[min_index]))
+  elsif((array[min_index]    <= array[middle_index] and array[middle_index] <= array[max_index]) or
+        (array[max_index]    <= array[middle_index] and array[middle_index] <= array[min_index]))
     return middle_index
-  elsif((array[min_index]    <  array[max_index]    and array[max_index]    < array[middle_index]) or
-        (array[middle_index] <  array[max_index]    and array[max_index]    < array[min_index]) or
+  elsif((array[min_index]    <=  array[max_index]   and array[max_index]    <= array[middle_index]) or
+        (array[middle_index] <=  array[max_index]   and array[max_index]    <= array[min_index]) or
         (min_index           == middle_index        and array[max_index])   < array[middle_index]) #only 2 elements, and the right-hand is smaller 
     return max_index
   end
@@ -72,21 +72,21 @@ def swap(array, i, j)
   array[i] = swap
 end
 
-a = [3,2,7,4,6,1,5,9,0,8]
+# array = [3,2,7,4,6,1,5,9,0,8]
 
 
-array = Array.new(10000)
-i = 0
-File.open("QuickSort.txt", 'r').each_line do |number|
-  array[i] = number.to_i
-  i+=1
-end
+# array = Array.new(10000)
+# i = 0
+# File.open("QuickSort.txt", 'r').each_line do |number|
+#   array[i] = number.to_i
+#   i+=1
+# end
 
 #first_element_pivot = 162085 comparisons
 #last_element_pivot  = 164123 comparisons
 #median_element_pivot= 138382 comparisons, not including those in find_median()
 
-result = quick_sort(array, 0, array.length-1)
-print result[:number_of_comparisons].to_s + "\n"
-#print array
-print "\n"
+# result = quick_sort(array, 0, array.length-1)
+# print result[:number_of_comparisons].to_s + "\n"
+# print array
+# print "\n"

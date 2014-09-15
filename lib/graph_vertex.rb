@@ -8,7 +8,7 @@ class Vertex
   end
 
   def to_s  
-    "Vertex #{@id}. Head vertices: " + @head_vertices.map{|head_vertex| head_vertex.id.to_s }.join(" ") 
+    "Vertex #{@id}"# Head vertices: " + @head_vertices.map{|head_vertex| head_vertex.id.to_s }.join(" ") 
   end
 
   def find_or_add_head(vertex)

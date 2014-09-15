@@ -37,7 +37,7 @@ class UnionFind
   # finds a subset, to which the node belongs,
   # returns the subset's leader object.
   def find_subset_leader node
-    node.leader.element
+    node.leader
   end
 
   def union node1, node2

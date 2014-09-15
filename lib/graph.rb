@@ -24,6 +24,7 @@ class Graph
       vertex2 = find_or_create_vertex(line[1].to_i)
 
       edge = Edge.new(vertex1, vertex2, line[2].to_i)
+      @edges[index-1] = edge
       vertex1.add_edge(edge)
       vertex2.add_edge(edge)
     }

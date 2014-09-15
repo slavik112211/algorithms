@@ -1,5 +1,4 @@
 require_relative 'union_find.rb'
-require 'debugger'
 
 describe UnionFind do
   it "should find a subset of a node" do
@@ -10,7 +9,7 @@ describe UnionFind do
 
     # find_subset_leader doesn't return a subset, but a subset's leader-node,
     # that represents the subset
-    uf.find_subset_leader(uf.nodes[4]).should == 4
+    uf.find_subset_leader(uf.nodes[4]).element.should == 4
   end
 
   it "should unite subsets into general sets" do

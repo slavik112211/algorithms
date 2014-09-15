@@ -11,10 +11,11 @@
 # 2. Union: Join two subsets into a single subset.
 
 class UnionFind
-  attr_reader :nodes
+  attr_reader :nodes, :clusters_amount
   def initialize size=nil, elements=nil
     if elements
       @nodes = Array.new(size)
+      @clusters_amount = size
       make_set elements
     else
       @nodes = Array.new
@@ -51,6 +52,7 @@ class UnionFind
     else
       join_subsets leader2, leader1
     end
+    @clusters_amount -= 1
   end
 
   private

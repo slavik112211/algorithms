@@ -100,7 +100,7 @@ def execute
   finish = Time.now.to_f
   diff = finish - start
   puts "start: #{start}; finish: #{finish}; diff: #{diff}"
-  puts mst.MST_cost #-3612829, 0.82 seconds
+  puts mst.MST_cost #
   puts "Max spacing distance for #{clusters} clusters: " + 
        "edge of length #{max_spacing_edge.path_length} " +
        "between #{max_spacing_edge.head_vertex.element.id} " +
@@ -109,5 +109,9 @@ end
 
 execute
 
+# edges.txt:
+# MST length: -3612829, 0.82 seconds.
+
+# clustering.txt:
 # MST length: 12320
 # Max spacing distance for 4 clusters: edge of length 106 between 455 and 414

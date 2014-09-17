@@ -70,4 +70,24 @@ describe UnionFind do
     uf.nodes[9].leader.element.should     == 6
     uf.nodes[9].leader.subset_size.should == 10
   end
+
+  it "should add new elements" do
+    uf = UnionFind.new
+    new_node = uf.find_or_add_element(2)
+    new_node.element.should == 2
+    new_node.leader.element.should == 2
+  end
+
+  it "should not add already-existing elements" do
+    uf = UnionFind.new
+    new_node = uf.find_or_add_element(2)
+    new_node2 = uf.find_or_add_element(5)
+    uf.union(new_node2, new_node)
+    new_node3 = uf.find_or_add_element(2)
+
+    uf.nodes.size.should == 2
+    new_node3.should == new_node #the same object
+    new_node3.element.should == 2
+    new_node3.leader.element.should == 5
+  end
 end

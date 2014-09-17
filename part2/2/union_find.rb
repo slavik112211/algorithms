@@ -19,8 +19,12 @@ class UnionFind
       make_set elements
     else
       @nodes = Array.new
+      @clusters_amount = 0
     end
-    
+  end
+
+  def to_s
+    @nodes.inject("") {|accumulator, node| accumulator+node.to_s+" " }
   end
 
   def make_set elements
@@ -30,9 +34,13 @@ class UnionFind
     }
   end
 
-  def add_element element
+  def find_or_add_element element
+    node = @nodes.find {|node| node.element == element }
+    return node if node
     node = Node.new element
     @nodes << node
+    @clusters_amount += 1
+    node
   end
 
   # finds a subset, to which the node belongs,
@@ -75,6 +83,10 @@ class UnionFind
       @element = element
       @leader = self
       @subset_size = 1
+    end
+
+    def to_s
+      "Point: #{@element}, cluster: #{@leader.element};"
     end
   end
 end

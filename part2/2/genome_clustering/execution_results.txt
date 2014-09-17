@@ -1,0 +1,23 @@
+1) clustering_500.txt   -  497 clusters
+2) clustering_1000.txt  -  989 clusters
+
+3) clustering_10000.txt - 9116 clusters
+
+4) clustering_big.txt - 6118 out of 200000 clusters
+Approx. running time on a 4-core 64-bit machine on JRuby: 4 hours 30 mins.
+
+Run on a 64bit 4-cores laptop, 4 threads of execution.
+1. ruby 2.1.0p0 (2013-12-25 revision 44422) [x86_64-linux]
+Time: 75.62 sec. 
+Execution: 3 out of 4 processor cores are loaded upto 40%, but total processor load never above 25%.
+Seems like MRI Ruby 2.1 loads only 1 core at a time (25% of total 4 cores = 100% 1 core), 
+even though distributes the load between the cores.
+
+2. jruby 1.7.15 (1.9.3p392) 2014-09-03 82b5cc3 on OpenJDK 64-Bit Server VM 1.7.0_65-b32 +jit [linux-amd64]
+Time: 28.79 sec.
+Execution: JRuby is really able to load all 4 processing cores with work.
+Processor load goes upto 100%, then lowers to 75%, then to 50%, then to 25%.
+This reflects how threads are finishing their work - threads workload is distributed unevenly.
+Thread1 has the biggest chunk of work, thread4 - the smallest. We distribute the outer
+loop (i-iterator) evenly to quarters between all threads. But the inner-loop (j-iterator) is much smaller for the last quarter, than for the first: j_lower_bound=i+1
+

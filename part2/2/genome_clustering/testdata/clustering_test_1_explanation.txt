@@ -1,0 +1,28 @@
+==================================
+2 separate clusters(8,15) into 1 cluster
+8,15:
+1 0 1 0 0 0 1 0 0 
+1 0 1 0 0 0 1 0 0
+(identical sequences)
+
+==================================
+3 separate clusters(7,12,13) into 1 cluster
+7,12:
+1 1 1 1 1 0 0 1 0 
+1 1 1 1 0 0 0 1 0 
+(1-bit difference)
+
+12,13:
+1 1 1 1 0 0 0 1 0 
+1 0 1 1 0 0 0 1 1 
+(2-bit difference)
+===================================
+2 separate clusters(5,14) into 1 cluster
+5,14:
+1 1 1 0 1 1 0 1 1 
+1 1 0 0 0 1 0 1 1
+(2-bit difference)
+
+===================================
+15 total clusters
+15-(2+3+2)+(1+1+1) = 11 clusters

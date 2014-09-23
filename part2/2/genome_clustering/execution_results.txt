@@ -21,3 +21,16 @@ This reflects how threads are finishing their work - threads workload is distrib
 Thread1 has the biggest chunk of work, thread4 - the smallest. We distribute the outer
 loop (i-iterator) evenly to quarters between all threads. But the inner-loop (j-iterator) is much smaller for the last quarter, than for the first: j_lower_bound=i+1
 
+==================================
+
+https://class.coursera.org/algo2-003/forum/thread?thread_id=97#comment-441
+
+The typical way is to check for neighbours from each vertex. There may be cleverer solutions, but in three runs through the course I've only coded or seen three broad strategies:
+
+1. For each vertex, generate every possible neighbour of hamming distance <= 2 and check whether it is in the input.
+
+2. Sort the vertices into a tree based on their bit values. For each vertex, walk the tree (eg. using depth-first), turning back whenever following a branch would result in a hamming distance of 3 or more, and check which vertex leaves are encountered.
+
+3. Sort the vertices into buckets, so that the neighbours of a vertex in one bucket can only lie within a small set of other buckets. Search those buckets exhaustively to find each vertex's neighbours.
+
+All of these approaches admit optimizations to avoid checking for the same edge twice, which I've glossed over in the summaries above.

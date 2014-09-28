@@ -6,17 +6,24 @@
 # each of its children, according to a comparison predicate defined for the heap.
 # The ordering of siblings in a heap is not specified by the heap property, 
 # a single node's two children can be freely interchanged.
+
+# Property @maintain_indexes allows to store an index of an element in the @container array.
+# This way, when an element will need to be deleted(), this can be done in O(log n) time,
+# instead of O(n) (searching the location of an element in an array) + 
+# O(log n) (removing). To use @maintain_indexes elements must provide a #index_in_heap field.
 class Heap
   MIN = 1; MAX = 2
   attr_reader :container
-  def initialize(type=Heap::MIN, container=nil)
+  def initialize(type=Heap::MIN, container=nil, options={})
     @container = container ||= Array.new
-    @type = type 
+    @type = type
+    @maintain_indexes = options[:maintain_indexes]
   end
 
   def push element
     @container << element
     index = @container.length-1
+    element.index_in_heap = index if @maintain_indexes
     bubble_up(index)
   end
   alias_method :insert, :push
@@ -26,13 +33,17 @@ class Heap
   end
   alias_method :extract, :pop
 
+  # running time: 
+  # O(n) (to find index of element in array) + O(log n) (to delete and reheapify the Heap)
+  # O(n) can be avoided, if #index_in_heap is stored for elements
   def delete element=nil, index=nil
-    index   ||= @container.index(element)
+    index   ||= @maintain_indexes ? element.index_in_heap : @container.index(element)
     element ||= @container[index]
 
     substitute = @container.pop
     return substitute if @container.length == 0 or !index
     @container[index] = substitute
+    substitute.index_in_heap = index if @maintain_indexes
     bubble_down(index)
     element
   end
@@ -77,6 +88,10 @@ class Heap
     element = @container[x_index]
     @container[x_index] = @container[y_index]
     @container[y_index] = element
+    if @maintain_indexes
+      @container[x_index].index_in_heap = x_index
+      @container[y_index].index_in_heap = y_index
+    end
   end
 
   def get_parent_index index
@@ -110,5 +125,28 @@ class Heap
       swap_child_index = (left_child>right_child) ? children_indexes[0] : children_indexes[1]
     end
     swap_child_index
+  end
+
+  class Node
+    include Comparable
+    attr_accessor :element, :index_in_heap
+    def initialize(element)
+      @element = element
+      @index_in_heap = nil
+    end
+
+    # def ==(another_node)
+    #   @element.equal? another_node.element
+    # end
+
+    def <=>(another_node)
+      if @element < another_node.element
+        -1
+      elsif @element > another_node.element
+        1
+      else
+        0
+      end
+    end
   end
 end

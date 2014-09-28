@@ -1,12 +1,13 @@
 class Edge
   include Comparable
-  attr_accessor :tail_vertex, :head_vertex, :path_length, :mst
+  attr_accessor :tail_vertex, :head_vertex, :path_length, :mst, :index_in_heap
 
   def initialize(tail_vertex, head_vertex, path_length)
     @tail_vertex = tail_vertex
     @head_vertex = head_vertex
     @path_length = path_length
     @mst = false
+    @index_in_heap = nil
   end
 
   def to_s  

@@ -74,6 +74,27 @@ describe Heap do
       heap.delete 8
       heap.container.should == [4, 10, 9, 12, 11, 13]
     end
+
+    it "should maintain array indexes of elements to support fast O(log n) deletions" do
+      heap = Heap.new(Heap::MIN, nil, {maintain_indexes: true})
+      elements = [4,5,7,8,11,13,9,10,12]
+      nodes = []
+      # wrapping elements as Heap::Nodes. This is simply a wrapper object to provide
+      # #index_in_heap per each element stored in Heap
+      elements.each { |element|
+        node=Heap::Node.new(element)
+        heap.push(node)
+        nodes << node
+      }
+      heap.container.map(&:element).should == [4,5,7,8,11,13,9,10,12]
+
+      heap.delete(nodes[1]) #2nd node, number 5
+      heap.delete(nodes[2]) #3rd node, number 7
+      heap.delete(nodes[3]) #4th node, number 8
+
+      heap.container.map(&:element)      .should == [4, 10, 9, 12, 11, 13]
+      heap.container.map(&:index_in_heap).should == [0,  1, 2,  3,  4,  5]
+    end
   end
 
   describe "Max" do

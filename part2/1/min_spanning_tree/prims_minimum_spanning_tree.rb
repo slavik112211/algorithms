@@ -27,14 +27,12 @@ class PrimJarnikMST
   attr_reader :graph
   def initialize file_name
     file_name ||= "edges.txt"
-    @frontier_edges = Heap.new(Heap::MIN)
-    # @frontier_edges = Set.new
+    @frontier_edges = Heap.new(Heap::MIN, nil, {maintain_indexes: true}) # Set.new
     @graph = Graph.new file_name
   end
 
   def compute_minimum_spanning_tree
     (1..@graph.vertices.size).each { |index|
-      # puts index
       vertex = (index == 1) ? @graph.vertices[0] : pick_edge_to_mst #initially, any vertex can be picked
       vertex.processed = true # marking vertex as explored
 
@@ -53,7 +51,6 @@ class PrimJarnikMST
           @frontier_edges.insert(edge)
         end
       }
-      # print_edges_in_frontier index
     }
   end
 
@@ -77,7 +74,7 @@ class PrimJarnikMST
   # is chosen to form MST.
   def pick_edge_to_mst
     edge = @frontier_edges.next
-    # edge = @frontier_edges.min_by { |edge| edge.path_length }
+    # if @frontier_edges is a Set: @frontier_edges.min_by { |edge| edge.path_length }
     edge.mst = true
     vertex = edge.tail_vertex.processed ? edge.head_vertex : edge.tail_vertex
   end
@@ -92,7 +89,7 @@ def execute
   puts "Total time: #{Time.now.to_f - start}"
   puts mst.MST_cost
 end
-# execute
+execute
 
 # edges.txt
 # MST length: -3612829
@@ -104,6 +101,9 @@ end
 # 1. Using Set to store @frontier_edges
 # (relatively fast, even though a search for min edge is performed every time an edge is picked)
 # 20.63(to read graph) + 14.3(to process MST) = 34.93 secs
+# 2. Using my own implementation of Heap to store @frontier_edges.
+# (insert(), pop(), delete() running time O(log n))
+# 21.09(to read graph) + 1.92(to process MST) = 23.01 secs
 
 
 # RubyProf.start

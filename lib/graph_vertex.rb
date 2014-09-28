@@ -1,10 +1,11 @@
 class Vertex
-  attr_accessor :id, :head_vertices, :edges
+  attr_accessor :id, :head_vertices, :edges, :processed
 
   def initialize(id)
     @id = id
     @head_vertices = Array.new
     @edges         = Array.new
+    @processed = false
   end
 
   def to_s  

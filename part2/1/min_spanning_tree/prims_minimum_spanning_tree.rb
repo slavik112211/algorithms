@@ -1,5 +1,7 @@
 require_relative '../../../lib/graph.rb'
 require_relative '../../../lib/heap.rb'
+# require 'set'
+# require 'ruby-prof'
 
 =begin
 Prim–Jarník algorithm is a greedy algorithm that finds a minimum spanning tree 
@@ -22,26 +24,19 @@ Output: Vnew and Enew describe a minimal spanning tree
 =end
 
 class PrimJarnikMST
-  attr_reader :MST_edges
+  attr_reader :graph
   def initialize file_name
     file_name ||= "edges.txt"
-
-    @MST_vertices = Array.new
-    @MST_edges    = Array.new
-    @frontier_edges = Array.new
-
+    @frontier_edges = Heap.new(Heap::MIN)
+    # @frontier_edges = Set.new
     @graph = Graph.new file_name
   end
 
-  def vertices
-    @graph.vertices
-  end
-
   def compute_minimum_spanning_tree
-    while !vertices.empty?
-      vertex = pick_edge_to_mst
-      vertices.delete(vertex)
-      @MST_vertices << vertex
+    (1..@graph.vertices.size).each { |index|
+      # puts index
+      vertex = (index == 1) ? @graph.vertices[0] : pick_edge_to_mst #initially, any vertex can be picked
+      vertex.processed = true # marking vertex as explored
 
       # when a vertex is added to MST, the set of edges that 
       # cross the frontier (of explored - unexplored vertices) has to be updated.
@@ -52,17 +47,28 @@ class PrimJarnikMST
 
       vertex.edges.each { |edge|
         opposite_vertex = edge.opposite_vertex(vertex)
-        if @MST_vertices.include?(opposite_vertex)
+        if opposite_vertex.processed
           @frontier_edges.delete(edge)
         else
-          @frontier_edges << edge
+          @frontier_edges.insert(edge)
         end
       }
-    end
+      # print_edges_in_frontier index
+    }
+  end
+
+  def print_edges_in_frontier index
+    puts "Iteration #{index}"
+    @frontier_edges.container.each{|edge| puts edge.to_s }
+    # @frontier_edges.each{|edge| puts edge.to_s }
   end
 
   def MST_cost
-    @MST_edges.inject(0) { |result, edge| result + edge.path_length }
+    mst_edges.inject(0) { |result, edge| result + edge.path_length }
+  end
+
+  def mst_edges
+    @graph.edges.select{|edge| edge.mst }
   end
 
   private
@@ -70,28 +76,42 @@ class PrimJarnikMST
   # by greedy criteria of PrimJarnikMST, an edge with a minimum length (weight) 
   # is chosen to form MST.
   def pick_edge_to_mst
-    if @MST_vertices.empty?
-      #initially, any vertex can be picked
-      vertex = vertices.find{|vertex| vertex.id == 1}
-    else
-      edge = @frontier_edges.min_by { |edge| edge.path_length }
-      @MST_edges << edge
-      vertex = @MST_vertices.include?(edge.tail_vertex) ? edge.head_vertex : edge.tail_vertex
-    end
-    vertex
+    edge = @frontier_edges.next
+    # edge = @frontier_edges.min_by { |edge| edge.path_length }
+    edge.mst = true
+    vertex = edge.tail_vertex.processed ? edge.head_vertex : edge.tail_vertex
   end
 end
 
 def execute
   start = Time.now.to_f
 
-  mst = PrimJarnikMST.new("edges.txt")
+  mst = PrimJarnikMST.new("clustering.txt")
+  puts "Time to read graph: #{Time.now.to_f - start}"
   mst.compute_minimum_spanning_tree
-  
-  finish = Time.now.to_f
-  diff = finish - start
-  puts "start: #{start}; finish: #{finish}; diff: #{diff}"
-  #0.72 seconds, when an Array is used to store @frontier_edges
-  puts mst.MST_cost #-3612829
+  puts "Total time: #{Time.now.to_f - start}"
+  puts mst.MST_cost
 end
 # execute
+
+# edges.txt
+# MST length: -3612829
+# Total running time: 0.4(to read graph) + 0.27(to process MST) = 0.67 secs
+
+# clustering.txt
+# MST length: 12320
+# Total running time:
+# 1. Using Set to store @frontier_edges
+# (relatively fast, even though a search for min edge is performed every time an edge is picked)
+# 20.63(to read graph) + 14.3(to process MST) = 34.93 secs
+
+
+# RubyProf.start
+# mst.compute_minimum_spanning_tree
+# result = RubyProf.stop
+# puts "Total time: #{Time.now.to_f - start}"
+# puts mst.MST_cost
+# printer = RubyProf::GraphHtmlPrinter.new(result)
+# file = File.open("profiler.html", 'w')
+# printer.print(file, :min_percent => 2, :print_file => true)
+# file.close

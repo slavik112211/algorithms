@@ -22,14 +22,20 @@ class Heap
   alias_method :insert, :push
 
   def pop
-    element = @container.pop
-    return element if @container.length == 0
-    root_element = @container[0]
-    @container[0] = element
-    bubble_down(0)
-    return root_element
+    delete nil, 0
   end
   alias_method :extract, :pop
+
+  def delete element=nil, index=nil
+    index   ||= @container.index(element)
+    element ||= @container[index]
+
+    substitute = @container.pop
+    return substitute if @container.length == 0 or !index
+    @container[index] = substitute
+    bubble_down(index)
+    element
+  end
 
   def next
     @container[0]

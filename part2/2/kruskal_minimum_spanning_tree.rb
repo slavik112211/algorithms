@@ -39,7 +39,10 @@ class KruskalMST
     @graph = Graph.new file_name
     @vertices_trees_forest = UnionFind.new(@graph.vertices.size, @graph.vertices)
     wrap_edges
-    quick_sort(@graph.edges, 0, @graph.edges.length-1) #sort edges smallest to largest
+  end
+
+  def sort_edges #sort edges smallest to largest
+    quick_sort(@graph.edges, 0, @graph.edges.length-1)
   end
 
   def compute_minimum_spanning_tree options = {}
@@ -83,8 +86,12 @@ class KruskalMST
   #UnionFind Node stores the vertex itself, and additional info per vertex within it.
   def wrap_edges
     @graph.edges.each {|edge|
-      edge.tail_vertex = @vertices_trees_forest.nodes.find {|node| node.element == edge.tail_vertex}
-      edge.head_vertex = @vertices_trees_forest.nodes.find {|node| node.element == edge.head_vertex}
+      unless edge.tail_vertex.class == UnionFind::Node
+        edge.tail_vertex = @vertices_trees_forest.nodes.find {|node| node.element == edge.tail_vertex}
+      end
+      unless edge.head_vertex.class == UnionFind::Node
+        edge.head_vertex = @vertices_trees_forest.nodes.find {|node| node.element == edge.head_vertex}
+      end
     }
   end
 end
@@ -93,14 +100,16 @@ def execute
   start = Time.now.to_f
 
   mst = KruskalMST.new("clustering.txt")
+  puts "Time to read graph: #{Time.now.to_f - start}"
+  mst.sort_edges
+  puts "Time to sort edges: #{Time.now.to_f - start}"
   mst.compute_minimum_spanning_tree
+  puts "Time to calculate MST: #{Time.now.to_f - start}"
+
   clusters = 4
   max_spacing_edge = mst.distance_for_k_clusters(clusters)
   
-  finish = Time.now.to_f
-  diff = finish - start
-  puts "start: #{start}; finish: #{finish}; diff: #{diff}"
-  puts mst.MST_cost #
+  puts mst.MST_cost
   puts "Max spacing distance for #{clusters} clusters: " + 
        "edge of length #{max_spacing_edge.path_length} " +
        "between #{max_spacing_edge.head_vertex.element.id} " +
@@ -114,4 +123,8 @@ execute
 
 # clustering.txt:
 # MST length: 12320
+# Time to read graph: 42.95 secs
+# (ineffective, as graph is processed twice: reading graph 20 secs, wrapping Vertices as Nodes 20 secs)
+# Time to sort edges: 44.26 - 42.95 = 1.31 secs
+# Time to calculate MST: 44.31- 44.26 = 0.05 sec
 # Max spacing distance for 4 clusters: edge of length 106 between 455 and 414

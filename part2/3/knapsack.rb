@@ -42,7 +42,7 @@ class Knapsack
     @subsolutions_2 = Array.new(@max_weight+1)
 
     (1..@items.size).each { |i|
-      # puts i
+      puts i
       (0..@max_weight).each { |j|
         # case 1. Item i excluded, no additional weight added to knapsack
         value1 = @subsolutions_1[j]
@@ -51,6 +51,7 @@ class Knapsack
         # a total value stored in a knapsack, when i items and j max_knapsack_weight
         @subsolutions_2[j] = (value1>value2) ? value1 : value2
       }
+      # move newly found subsolutions to subsolutions1
       (0..@subsolutions_2.size-1).each {|i| @subsolutions_1[i] = @subsolutions_2[i] }
     }
     @max_value = @subsolutions_2[@max_weight]
@@ -99,3 +100,8 @@ exec
 
 # knapsack1.txt:
 # max value, that fits into 10000 (weight) knapsack = 2493893 (value)
+
+# knapsack_big.txt:
+# running time: approx. 1 hour 20 mins.
+# Max total value of items that could be stored in 2000000 (weight) knapsack is 4243395 (value)
+# running time of C++ program: 50 seconds.

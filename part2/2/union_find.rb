@@ -66,6 +66,16 @@ class UnionFind
   private
 
   # Make subset_1 bigger by joining subset_2 to it
+  # 
+  # This method searches through all nodes of all subsets (@nodes.each()),
+  # finding nodes of a particular subset, and applying changes to only those nodes.
+  # This can be avoided, if a leader-node of a subset would have a link to each node the subset contains.
+  # Other way would be to organize subset as a linked list, so that the whole subset can be
+  # traversed starting from leader-node.
+  # This way, every subset would be represented as a double linked-list:
+  # 1. Each node has a link to a leader-node (to be able to find leader from any node in a subset)
+  # 2. All nodes are linked together starting from a leader-node (to allow traversing the whole
+  #    subset starting from a leader-node)
   def join_subsets subset_leader1, subset_leader2
     @nodes.each {|node|
       if node.leader == subset_leader2
